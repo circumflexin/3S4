@@ -1,0 +1,42 @@
+
+*.Rd
+
+*.pdf
+
+*.csv
+
+*.png
+
+*.fig
+
+*.txt
+
+*.mat
+
+Body density_AB/.Rproj.user/
+
+Body density_AB/Data/
+
+*.xml
+
+Body density/GS_results/.DS_Store
+
+Body density/oo_glides/.DS_Store
+
+Killer whale HMMs/.Rhistory
+
+*.Rproj
+
+Body density/.Rproj.user/
+
+Body density/Data/.DS_Store
+
+Body density/.DS_Store
+
+Body density/.Rhistory
+
+*.zip
+
+Killer whale HMMs/.Rproj.user/
+
+Body density_AB/oo_glides/.DS_Store
