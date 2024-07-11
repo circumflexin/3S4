@@ -1,6 +1,6 @@
 
 % config
-dis_thresh = 5 %km
+dis_thresh = 30 %km
 t_thresh = 30 %sec
 wtrack_dir = "D:\Raw\3S4\Pseuedotracks"
 btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Oct31 vessels with IMO"
@@ -22,32 +22,42 @@ n = 1
 % get rid of files which have no overlap or are never closer than the
 % thresh or are not fihing boats
 for f = 1:length(trackfiles)
-   ais_file=trackfiles(f).name
-   boat = readtable(fullfile(btrack_dir,ais_file));
-   x1 = string(boat.validated_shiptype{1}) ~= "Fishing Vessel";
-   x2 = ~any(boat.date_time_utc > twht(1) & boat.date_time_utc < twht(length(twht)));
-   if(~any([x1,x2]))
-       posf = [boat.lat, boat.lon];
-       for i=1:length(poswh)
-       mind = min(distance(poswh(i,:), posf, ellipsoid));
-       if mind < dis_thresh*1000
-               rel(n,1) = string(ais_file)
-               n = n +1
-               break
-       end
-       end
-   end
+    ais_file=trackfiles(f).name
+    boat = readtable(fullfile(btrack_dir,ais_file));
+    x1 = string(boat.validated_shiptype{1}) ~= "Fishing Vessel"; %
+    x2 = (twht(1) > boat.date_time_utc(length(boat.date_time_utc)) |  twht(length(twht)) <boat.date_time_utc(1)) %tag starts after ais ends or ends before it starts  
+    if ~any([x1, x2])
+        boat2 = boat(1:df:end,:); %downsample for performance
+        x3 = ~any(boat2.date_time_utc > twht(1) & boat.date_time_utc < twht(length(twht))); % check if AIS actually records any data during deploy
+        if(~any([x3]))
+            posf = [boat2.lat, boat2.lon];
+            for i=1:length(poswh)
+                mind = min(distance(poswh(i,:), posf, ellipsoid));
+                if mind < dis_thresh*1000
+                    rel(n,1) = string(ais_file)
+                    n = n +1
+                    break
+                end
+            end
+        end
+    end
 end
 
 
-dswh = nan(length(twh),1);
-i = 1
+
+dswh = nan(length(twh),length(rel));
+i = 8
 temp = rel(i)
 twht = datetime(twh,'ConvertFrom','datenum');
 
-btrack = readtable(fullfile(btrack_dir,temp));
-bool = btrack.date_time_utc > twht(1) & btrack.date_time_utc < twht(length(twht))
-btrack2 = btrack(bool,:);
+boat = readtable(fullfile(btrack_dir,temp));
+plot(boat.date_time_utc)
+plot(boat.lat)
+plot(boat.date_time_utc,boat.lat)
+plot(boat.sog)
+
+bool = boat.date_time_utc > twht(1) & boat.date_time_utc < twht(length(twht))
+btrack2 = boat(bool,:);
 bt = btrack2.date_time_utc
 
 o1 =  twht>btrack2.date_time_utc(1)
@@ -56,10 +66,31 @@ o3 = o1+o2
 starts = min(find(o3 ==2))
 ends = max(find(o3 ==2))
 
-for i = starts:ends 
-    twi = twht(i);
-    pwi = poswh(i);
-    [~,sfb] = min(abs(twht(i)-bt));
-    
+for j = 1:length(rel)
+    boat = readtable(fullfile(btrack_dir,rel(j)));
+    bool = boat.date_time_utc > twht(1) & boat.date_time_utc < twht(length(twht));
+    btrack2 = boat(bool,:);
+    bt = btrack2.date_time_utc;
+    o1 =  twht>btrack2.date_time_utc(1);
+    o2 = twht<btrack2.date_time_utc(length(btrack2.date_time_utc));
+    o3 = o1+o2
+    starts = min(find(o3 ==2))
+    ends = max(find(o3 ==2))
+    for i = starts:ends
+        twi = twht(i);
+        pwi = poswh(i,:);
+        [val,ind] = min(abs(twht(i)-bt));
+        if val < seconds(t_thresh)
+            pfb = [btrack2.lat(ind),btrack2.lon(ind)];
+            [dswh(i,j),tmp] = distance(pwi, pfb, ellipsoid);
+        end
+    end
 end
 
+
+hold off
+plot(dswh)
+
+plot(boat.lon, boat.lat)
+hold on 
+plot(poswh(:,2),poswh(:,1))
