@@ -7,7 +7,7 @@ sog_thresh = 30
 wtrack_dir = "D:\Raw\3S4\Pseuedotracks"
 btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Oct31 vessels with IMO"
 fs_dif = 10
-ptracks = {'oo23_292b_pt','oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt'}
+ptracks = {'','oo23_301a_pt','oo23_302a_pt'}
 diagn = true;
 
 AISfiles = dir(fullfile(btrack_dir,'*.csv'))

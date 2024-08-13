@@ -3,17 +3,17 @@
 % Uses a DTAG cal file to extract WAV file durations.
 clear all;
 
-tag = 'oo23_302a';
+tag = 'oo23_301a';
 
 % Load the cal file (NOTE: cal file for oo23_292b is preliminary!)
-settagpath('cal','D:\Analysis\3S4\severity_plots_AB\cal')
+settagpath('cal','cal\')
 [CAL,D] = d3loadcal(tag);
 
 % Loop over each annotation file to extract data
 taudit=[];
 duraudit=[];
 code=cell(0);
-d = dir('C:\--- 3S-PROJECT ---\3S-2023\Plots for science meeting\prelim audits\oo23_292b\*.txt');
+d = dir('audit\oo23_301a\*.txt');
 for i=1:length(d)
     tstart = datenum(D.SCUES.TIME(strcmp(D.FN, d(i).name(1:(end-4))),:)); % UTC start time of annotated WAV file 
     data = readtable([d(i).folder,'\',d(i).name]);  % read data
@@ -23,7 +23,7 @@ for i=1:length(d)
 end
 
 %% Save this uncorrected version
-% save([tag,'aud.mat'],'taudit','duraudit','code')
+save([tag,'aud.mat'],'taudit','duraudit','code')
 
 
 %% Check data

@@ -14,9 +14,11 @@ prhfolder = 'prh\';
 calfolder = 'cal\';
 speedfolder = 'speed from jiggle\';
 auditfolder = 'prelim audits\';
-noiseauditfolder = 'C:\--- 3S-PROJECT ---\3S-2023\Audits\Noise audit data\';
-ptrackfolder = 'pseudotrack\';
+noiseauditfolder = 'Noise audit data\';
+ptrackfolder = 'D:\Analysis\3S4\AIS_processing\outputs\';
 husgpsfolder = 'GPS_AIS\';
+
+HMM_folder = 'D:\Analysis\3S4\Killer whale HMMs';
 
 %% Start code
 % Loop over tags
@@ -27,8 +29,6 @@ for j=1%:length(tags)
 tag = tags{j};
 get_udef(tag)
 
-% Fake fishing vessels during deployment oo23_292b (TEMP)
-posf=[70.2992,20.9389; 70.1856,20.8372; 70.2102,21.0436];
 
 %% Load input data
 
@@ -98,15 +98,19 @@ for i=1:(length(taudit_noise)-1)
     if inoise(i,5)==1, inoise2(ind,5) = 5; end
 end
 
-% Load pseudotrack
-load([ptrackfolder,tag,'_pt.mat']) % this includes time vectors twh and tgps
+% Load pseudotrack - temporary, change datastructure to match Paul's for
+% futre compatbility 
+load([ptrackfolder,tag,'_pt_dsfb.mat']) % this includes time vectors twh and tgps
 nx = 10; % 1 Hz data thinned to 0.1 Hz for plotting
-twh = twh(1:nx:end);
-swcor = swcor(1:nx:end);
-swcorh = swcorh(1:nx:end);
-headcor = headcor(1:nx:end);
+twh = wtrack.twh(1:nx:end);
+swcor = wtrack.swcor(1:nx:end);
+swcorh = wtrack.swcorh(1:nx:end);
+headcor = wtrack.headcor(1:nx:end);
 headcor = rad2deg(headcor);
+pos_gps = wtrack.pos_gps;
 turnanglecor = [wrapTo180(diff(headcor)); nan];
+
+poswh = wtrack.poswh;
 
 % Load HUS GPS data
 load([husgpsfolder,'HUS_GPS_30s.mat'])
@@ -117,18 +121,23 @@ ts = ts(ind); poss = poss(ind,:); % limit to deployment period
 % Vessel-whale distance
 ellipsoid = almanac('earth','wgs84','meters');
 dswh = nan(length(ts),1);  %  distance to HUS
-dnfwh = nan(length(ts),2); %  TEMP: distance to nearest fishing vessel
+%dnfwh = nan(length(ts),2); %  TEMP: distance to nearest fishing vessel
 for i=1:length(ts)
     [tmp,ind] = min(abs(ts(i)-twh));
     [dswh(i,1),tmp] = distance(poswh(ind,:), poss(i,:), ellipsoid);
-    if strcmp(tag,'oo23_292b')
-        [dtmp(1),tmp] = distance(posf(1,:), poss(i,:), ellipsoid);
-        [dtmp(2),tmp] = distance(posf(2,:), poss(i,:), ellipsoid);
-        [dtmp(3),tmp] = distance(posf(3,:), poss(i,:), ellipsoid);
-        [dnfwh(i,1),dnfwh(i,2)] = min(dtmp); % [minimum distance, vessel index];
-    end
+%     if strcmp(tag,'oo23_292b')
+%         [dtmp(1),tmp] = distance(posf(1,:), poss(i,:), ellipsoid);
+%         [dtmp(2),tmp] = distance(posf(2,:), poss(i,:), ellipsoid);
+%         [dtmp(3),tmp] = distance(posf(3,:), poss(i,:), ellipsoid);
+%         [dnfwh(i,1),dnfwh(i,2)] = min(dtmp); % [minimum distance, vessel index];
+%     end
 end
 
+%load HMM
+HMM = readtable(fullfile(HMM_folder,"HMM_2state_3min.csv"));
+HMM = HMM(strcmp(HMM.deploy, append(tag,'_pt')),:);
+
+dsfb = wtrack.dsfb(1:nx:end,:);
 
 %% Map
 sdf = df/(1/fs); % resolution difference HUS and whale track
@@ -218,22 +227,21 @@ plot(tutc,inoise2,'LineWidth',2); datetickzoom('x',15)
 
 %%%%%%%%% Vessel distance panel
 h(2)=subplot(8,1,2);
+plot(twh,dsfb(:,:)/1000); datetickzoom('x',15)
 ind = ts>=tson(1) & ts<=tson(2);
-plot(ts(ind),dswh(ind)/1000,'k-','LineWidth',1); % distance to HUS
-hold on; plot(tutc([1 end]),[.5 .5],'k:', tutc([1 end]),[1 1],'k:');
+semilogy(ts(ind),dswh(ind)); % distance to HUS
 ylabel({'Vessel','distance (km)'});  datetickzoom('x',15)
 
-% Distance to fake stationary fishing vessels (temporary)
-if strcmp(tag,'oo23_292b')
-plot(ts,dnfwh(:,1)/1000,'--','Color',[.6 .6 .6],'LineWidth',1); 
-ichange = find(diff(dnfwh(:,2))>0);
-plot(ts(ichange),dnfwh(ichange,1)/1000,'|','LineWidth',1);
-end
 
 %%%%%%%%% Speed panel
 h(3)=subplot(8,1,3); plot(twh,swcor,'.:','Color',[.6 .6 .6]); datetickzoom('x',15)
-hold on; plot(twh,swcorh,'k-','LineWidth',1); hold off
+hold on; plot(twh,swcorh,'k-','LineWidth',1)
 ylabel('Speed (ms^{-1})')
+HMM1 = HMM.twh(HMM.state==1);
+HMM2 = HMM.twh(HMM.state==2);
+plot(HMM1,ones(length(HMM1),1)*0.1,"|", 'MarkerSize',7, 'LineWidth',4, 'Color', "red");
+plot(HMM2,ones(length(HMM2),1)*0.1,"|",'MarkerSize',7, 'LineWidth',4, 'Color', "#4DBEEE");
+hold off
 
 %%%%%%%%% Heading and turning angle panel
 h(4)=subplot(8,1,4); plot(thead,turnangle,'-','Color','#FFA500','LineWidth',1);

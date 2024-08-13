@@ -22,6 +22,8 @@ for(deploy in deploys){
   pos$index = 1:nrow(pos)
   pos_ds = pos[(pos$index-1)%%(res*6)==0,]
   pos_ds$ID = i
+  pos_ds$deploy = deploy
+  pos_ds$twh = track$twh[pos_ds$index]
   if(i == 1){mas_posds = pos_ds}
   else{mas_posds = rbind(mas_posds,pos_ds)}
   i = i+1
@@ -39,7 +41,12 @@ stepPar0 <- c(0.05,0.125,0.02,0.15) # (mu_1,mu_2,sd_1,sd_2...)
 anglePar0 <- c(1,15) #
 
 fit = fitHMM(data = x, nbStates = 2, dist = list(step = "gamma", angle = "vm"),Par0 = list(step = stepPar0, angle = anglePar0),estAngleMean = list(angle=FALSE))
-#states = viterbi(fit)
+states = viterbi(fit)
 pdf(paste("2state_",res,"min.pdf", sep = ""))
 plot(fit, ask = FALSE)
 dev.off()
+
+x$state = states
+
+write.csv(x, file = paste("HMM_2state_",res,"min.csv", sep = ""))
+
