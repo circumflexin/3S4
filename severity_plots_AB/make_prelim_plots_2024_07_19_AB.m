@@ -5,9 +5,11 @@ clear all; close all
 
 %% User defined
 save_plots = false; % save plots yes/no?
+trunc_dist = 20; % cut off vessel distance at the noise floor 
+% to prevent large spurious spikes in the plot
 
 % tags = {'oo23_292b','oo23_295a'}; % all tags with complete audits
-tags = {'oo23_302a'}; % all priority tags (focal, nonfocal and one baseline (oo23_302a))
+tags = {'oo23_292b','oo23_295a','oo23_295b','oo23_297b','oo23_299a','oo23_299b'}; % all priority tags (focal, nonfocal and one baseline (oo23_302a))
 
 % Data folders (relative or absolute paths)
 prhfolder = 'prh\';
@@ -22,7 +24,7 @@ HMM_folder = 'D:\Analysis\3S4\Killer whale HMMs';
 
 %% Start code
 % Loop over tags
-for j=1%:length(tags)
+for j=1:length(tags)
 
 
 % Load user defined
@@ -229,7 +231,7 @@ plot(tutc,inoise2,'LineWidth',2); datetickzoom('x',15)
 h(2)=subplot(8,1,2);
 plot(twh,dsfb(:,:)/1000); datetickzoom('x',15)
 ind = ts>=tson(1) & ts<=tson(2);
-semilogy(ts(ind),dswh(ind)); % distance to HUS
+%semilogy(ts(ind),dswh(ind)); % distance to HUS
 ylabel({'Vessel','distance (km)'});  datetickzoom('x',15)
 
 

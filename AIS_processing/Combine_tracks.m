@@ -5,9 +5,9 @@ t_thresh = 30 %sec
 df = 30
 sog_thresh = 30
 wtrack_dir = "D:\Raw\3S4\Pseuedotracks"
-btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Oct31 vessels with IMO"
+btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
 fs_dif = 10
-ptracks = {'oo23_292b_pt','oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt'}
+ptracks = {'oo23_292b_pt','oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt','oo23_301a_pt','oo23_302a_pt'}
 diagn = true;
 
 AISfiles = dir(fullfile(btrack_dir,'*.csv'))
@@ -16,7 +16,7 @@ for k = 1:length(ptracks)
     trackn = ptracks(k)
     temp = open(fullfile(wtrack_dir,append(trackn,".mat")))
     poswh = temp.poswh;
-    twh = temp.twh;
+    twh = temp.twh(1:nx:end);
     %datestr(twh(1:4))
     twht = datetime(twh,'ConvertFrom','datenum');
 
@@ -33,7 +33,7 @@ for k = 1:length(ptracks)
         if ~any([x1, x2])
             boat2 = boat(1:df:end,:); %downsample for performance
             x3 = ~any(boat2.date_time_utc > twht(1) & boat2.date_time_utc < twht(length(twht))); % check if AIS actually records any data during deploy
-            if(~any([x3]))
+            if(~any(x3))
                 posf = [boat2.lat, boat2.lon];
                 for i=1:length(poswh)
                     mind = min(distance(poswh(i,:), posf, ellipsoid));
@@ -76,7 +76,9 @@ for k = 1:length(ptracks)
     temp.dsfb = dsfb
     wtrack = temp
     save(fullfile("outputs/",append(trackn,"_dsfb.mat")),'wtrack')
+    save(fullfile("outputs/",append(trackn,"_relAIS.mat")),'rel')
     if diagn
         saveas(gcf, [string(trackn)], 'fig')
+        saveas(gcf, [string(trackn)], 'png')
     end
 end
