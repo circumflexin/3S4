@@ -13,14 +13,15 @@ swcor = wtrack.swcor(1:nx:end);
 swcorh = wtrack.swcorh(1:nx:end);
 headcor = wtrack.headcor(1:nx:end);
 dsfb = wtrack.dsfb(1:nx:end,:);
-% poswh = wtrack.poswh(1:nx/10:end,:);
-
+poswh = wtrack.poswh(1:nx/10:end,:);
+fb_lat = wtrack.fb_lat(1:nx:end,:);
+fb_lon = wtrack.fb_lon(1:nx:end,:);
 headcor = rad2deg(headcor);
 pos_gps = wtrack.pos_gps;
 
 
 plot(twh,dsfb(:,:)/1000);
-set(gca,'YLim',[0.2,22],'YTick',[0.25 0.5 1 2 5 10 20],...
+set(gca,'YLim',[0,22],'YTick',[0.25 0.5 1 2 5 10 20],...
             'YScale','log','YDir','reverse')
 
 % get period of interest
@@ -31,25 +32,55 @@ fin = num2ruler(win(2,1),ax.XAxis);
 
 bool = twh > start & twh < fin;
 twh2 = twh(bool);
-poswh2 = poswh(bool);
+poswh2 = poswh(bool,:);
 dsfb2 = dsfb(bool,:);
+fb_lon2 = fb_lon(bool,:);
+fb_lat2 = fb_lat(bool,:);
+
+
 mds = min(dsfb2);
 [val,ind] = mink(mds,2);
 
 plot(twh2,dsfb2(:,ind))
 rel2 = rel(ind)
 
-colline(poswh2(:,1),poswh2(:,2),datenum(twh2-start));
+colline(poswh2(:,2),poswh2(:,1),datenum(twh2-start));
 hold on
-for j = 1%:length(rel2)
+for j = 1:length(rel2)
         j
         boat = readtable(fullfile(btrack_dir,rel2(j)));
         boat = sortrows(boat, "date_time_utc")
         bool = boat.date_time_utc > start & boat.date_time_utc < fin;
         boat = boat(bool,:);
-        colline(boat.lat,boat.lon, datenum(boat.date_time_utc-start))
+        colline(boat.lon,boat.lat, datenum(boat.date_time_utc-start))
 end
 hold off
+
+
+
+% animated version
+h = animatedline;
+h2 = animatedline(Color="green");
+h3 = animatedline(Color="blue");
+axis([21.3,21.65,70.44,70.6])
+
+xw = poswh2(:,2);
+yw = poswh2(:,1);
+
+F(length(xw)) = struct('cdata',[],'colormap',[]);
+
+for k = 1:length(xw)
+    addpoints(h,xw(k),yw(k));
+    addpoints(h2,fb_lon2(k,7),fb_lat2(k,7));
+    addpoints(h3,fb_lon2(k,19),fb_lat2(k,19));
+    drawnow
+    F(k) = getframe(gcf);
+end
+
+fig = figure;
+movie(fig,F,2)
+
+
 
 %get file start times
 settagpath('cal','D:\Raw\3S4\cal')
@@ -64,5 +95,5 @@ writetable(ctab, 'out/ctab.csv')
 
 % closing speed vs over-ground speed
 
-clospeed = diff(dsfb2)
+clospeed = diff(dsfb2);
 plot(clospeed(:,19))

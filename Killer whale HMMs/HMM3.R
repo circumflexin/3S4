@@ -40,7 +40,9 @@ stepPar0 <- c(0.05,0.125,0.02,0.15) # (mu_1,mu_2,sd_1,sd_2...)
 # initial angle distribution natural scale parameters
 anglePar0 <- c(1,15) #
 
-fit = fitHMM(data = x, nbStates = 2, dist = list(step = "gamma", angle = "vm"),Par0 = list(step = stepPar0, angle = anglePar0),estAngleMean = list(angle=FALSE))
+fit = fitHMM(data = x, nbStates = 2, dist = list(step = "gamma", angle = "vm"),
+             Par0 = list(step = stepPar0, angle = anglePar0),
+             estAngleMean = list(angle=FALSE), retryFits = 50)
 states = viterbi(fit)
 pdf(paste("2state_",res,"min.pdf", sep = ""))
 plot(fit, ask = FALSE)

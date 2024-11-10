@@ -8,7 +8,7 @@ wtrack_dir = "D:\Raw\3S4\Pseuedotracks"
 btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
 fs_dif = 10
 ptracks = {'oo23_292b_pt','oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt','oo23_301a_pt','oo23_302a_pt'}
-diagn = true;
+diagn = false;
 
 AISfiles = dir(fullfile(btrack_dir,'*.csv'))
 
@@ -16,7 +16,7 @@ for k = 1:length(ptracks)
     trackn = ptracks(k)
     temp = open(fullfile(wtrack_dir,append(trackn,".mat")))
     poswh = temp.poswh;
-    twh = temp.twh(1:nx:end);
+    twh = temp.twh;
     %datestr(twh(1:4))
     twht = datetime(twh,'ConvertFrom','datenum');
 
@@ -24,7 +24,7 @@ for k = 1:length(ptracks)
     ellipsoid = almanac('earth','wgs84','meters');
     n = 1
     % get rid of files which have no overlap or are never closer than the
-    % thresh or are not fihing boats
+    % thresh or are not fishing boats
     for f = 1:length(AISfiles)
         ais_file=AISfiles(f).name
         boat = readtable(fullfile(btrack_dir,ais_file));
@@ -49,6 +49,9 @@ for k = 1:length(ptracks)
 
 
     dsfb = nan(length(twh),length(rel));
+    fb_lat = dsfb;
+    fb_lon = dsfb;
+
     for j = 1:length(rel)
         j
         boat = readtable(fullfile(btrack_dir,rel(j)));
@@ -68,12 +71,17 @@ for k = 1:length(ptracks)
             if val < seconds(t_thresh)
                 pfb = [btrack2.lat(ind),btrack2.lon(ind)];
                 [dsfb(i,j),tmp] = distance(pwi, pfb, ellipsoid);
+                fb_lon(i,j) = btrack2.lon(ind);
+                fb_lat(i,j) = btrack2.lat(ind);
             end
         end
     end
 
     p = plot(dsfb)
     temp.dsfb = dsfb
+    temp.fb_lon = fb_lon;
+    temp.fb_lat = fb_lat;
+
     wtrack = temp
     save(fullfile("outputs/",append(trackn,"_dsfb.mat")),'wtrack')
     save(fullfile("outputs/",append(trackn,"_relAIS.mat")),'rel')
