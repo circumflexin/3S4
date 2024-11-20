@@ -7,7 +7,7 @@ load([ptrackfolder,tag,'_pt_relAIS.mat'])
 
 
 
-nx = 10; % 1 Hz data thinned
+nx = 20; % 1 Hz data thinned
 twh = datetime(wtrack.twh(1:nx:end), "ConvertFrom", 'datenum');
 swcor = wtrack.swcor(1:nx:end);
 swcorh = wtrack.swcorh(1:nx:end);
@@ -19,12 +19,11 @@ fb_lon = wtrack.fb_lon(1:nx:end,:);
 headcor = rad2deg(headcor);
 pos_gps = wtrack.pos_gps;
 
-
+% get period of interest
 plot(twh,dsfb(:,:)/1000);
 set(gca,'YLim',[0,22],'YTick',[0.25 0.5 1 2 5 10 20],...
             'YScale','log','YDir','reverse')
 
-% get period of interest
 ax = gca;
 win = ginput(2);
 start = num2ruler(win(1,1),ax.XAxis);
@@ -36,6 +35,8 @@ poswh2 = poswh(bool,:);
 dsfb2 = dsfb(bool,:);
 fb_lon2 = fb_lon(bool,:);
 fb_lat2 = fb_lat(bool,:);
+
+find(min(mds,[],1) < 2000)
 
 
 mds = min(dsfb2);
@@ -59,9 +60,19 @@ hold off
 
 
 % animated version
-h = animatedline;
-h2 = animatedline(Color="green");
-h3 = animatedline(Color="blue");
+h = animatedline('MaximumNumPoints',100,Color="green");
+h2 = animatedline('MaximumNumPoints',100,Color="green");
+h3 = animatedline('MaximumNumPoints',100, Color="blue");
+
+h4 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h5 = animatedline('MaximumNumPoints',100,Color="#d3d3d3");
+h6 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h7 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h8 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h9 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h10 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h11 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+
 axis([21.3,21.65,70.44,70.6])
 
 xw = poswh2(:,2);
@@ -73,14 +84,22 @@ for k = 1:length(xw)
     addpoints(h,xw(k),yw(k));
     addpoints(h2,fb_lon2(k,7),fb_lat2(k,7));
     addpoints(h3,fb_lon2(k,19),fb_lat2(k,19));
-    drawnow
+    
+    % plot boats the whales don't visit
+    addpoints(h4,fb_lon2(k,6),fb_lat2(k,6))
+    addpoints(h5,fb_lon2(k,10),fb_lat2(k,10))
+    addpoints(h6,fb_lon2(k,13),fb_lat2(k,13))
+    addpoints(h7,fb_lon2(k,17),fb_lat2(k,17))
+    addpoints(h8,fb_lon2(k,18),fb_lat2(k,18))
+    addpoints(h9,fb_lon2(k,20),fb_lat2(k,20))
+    addpoints(h10,fb_lon2(k,26),fb_lat2(k,26))
+    addpoints(h11,fb_lon2(k,29),fb_lat2(k,29))
+    drawnow limitrate
     F(k) = getframe(gcf);
 end
 
 fig = figure;
 movie(fig,F,2)
-
-
 
 %get file start times
 settagpath('cal','D:\Raw\3S4\cal')

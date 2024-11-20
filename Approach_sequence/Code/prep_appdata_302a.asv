@@ -5,9 +5,7 @@ btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vess
 load([ptrackfolder,tag,'_pt_dsfb.mat']) % this includes time vectors twh and tgps
 load([ptrackfolder,tag,'_pt_relAIS.mat'])
 
-
-
-nx = 30; % 1 Hz data thinned
+nx = 20; % 1 Hz data thinned
 twh = datetime(wtrack.twh(1:nx:end), "ConvertFrom", 'datenum');
 swcor = wtrack.swcor(1:nx:end);
 swcorh = wtrack.swcorh(1:nx:end);
@@ -45,33 +43,20 @@ mds = min(dsfb2);
 plot(twh2,dsfb2(:,ind))
 rel2 = rel(ind)
 
-colline(poswh2(:,2),poswh2(:,1),datenum(twh2-start));
-hold on
-for j = 1:length(rel2)
-        j
-        boat = readtable(fullfile(btrack_dir,rel2(j)));
-        boat = sortrows(boat, "date_time_utc")
-        bool = boat.date_time_utc > start & boat.date_time_utc < fin;
-        boat = boat(bool,:);
-        colline(boat.lon,boat.lat, datenum(boat.date_time_utc-start))
-end
-hold off
 
-
-
-% animated version
-h = animatedline;
+% watch c
+h = animatedline('MaximumNumPoints',100,Color="black", LineWidth = 2);
 h2 = animatedline('MaximumNumPoints',100,Color="green");
-h3 = animatedline(Color="blue");
+h3 = animatedline('MaximumNumPoints',100, Color="blue");
 
-h4 = animatedline('MaximumNumPoints',100Color="#d3d3d3");
-h5 = animatedline(Color="#d3d3d3");
-h6 = animatedline(Color="#d3d3d3");
-h7 = animatedline(Color="#d3d3d3");
-h8 = animatedline(Color="#d3d3d3");
-h9 = animatedline(Color="#d3d3d3");
-h10 = animatedline(Color="#d3d3d3");
-h11 = animatedline(Color="#d3d3d3");
+h4 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h5 = animatedline('MaximumNumPoints',100,Color="#d3d3d3");
+h6 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h7 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h8 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h9 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h10 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
+h11 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
 
 axis([21.3,21.65,70.44,70.6])
 
@@ -84,7 +69,8 @@ for k = 1:length(xw)
     addpoints(h,xw(k),yw(k));
     addpoints(h2,fb_lon2(k,7),fb_lat2(k,7));
     addpoints(h3,fb_lon2(k,19),fb_lat2(k,19));
-    % plot boats the whales don't end up at 
+    
+    % plot boats the whales don't visit
     addpoints(h4,fb_lon2(k,6),fb_lat2(k,6))
     addpoints(h5,fb_lon2(k,10),fb_lat2(k,10))
     addpoints(h6,fb_lon2(k,13),fb_lat2(k,13))
@@ -101,7 +87,7 @@ fig = figure;
 movie(fig,F,2)
 
 %get file start times
-settagpath('cal','D:\Raw\3S4\cal')
+settagpath('cal','D:\Raw\3S4\D3\cal')
 [CAL,DEPLOY,ufname] = d3loadcal(tag)
 
 ctab = num2cell(DEPLOY.SCUES.TIME);
