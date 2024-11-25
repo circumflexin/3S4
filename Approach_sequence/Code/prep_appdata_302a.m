@@ -21,7 +21,6 @@ pos_gps = wtrack.pos_gps;
 plot(twh,dsfb(:,:)/1000);
 set(gca,'YLim',[0,22],'YTick',[0.25 0.5 1 2 5 10 20],...
             'YScale','log','YDir','reverse')
-
 ax = gca;
 win = ginput(2);
 start = num2ruler(win(1,1),ax.XAxis);
@@ -34,10 +33,10 @@ dsfb2 = dsfb(bool,:);
 fb_lon2 = fb_lon(bool,:);
 fb_lat2 = fb_lat(bool,:);
 
-find(min(mds,[],1) < 2000)
 
 
 mds = min(dsfb2);
+find(min(mds,[],1) < 2000)
 [val,ind] = mink(mds,2);
 
 plot(twh2,dsfb2(:,ind))
@@ -45,6 +44,7 @@ rel2 = rel(ind)
 
 
 % perform animation with presets
+%figure('units','pixels','position',[0 0 1440 1080])
 h = animatedline('MaximumNumPoints',100,Color="black", LineWidth = 2);
 h2 = animatedline('MaximumNumPoints',100,Color="red");
 h3 = animatedline('MaximumNumPoints',100, Color="blue");
@@ -58,19 +58,24 @@ h9 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
 h10 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
 h11 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
 
-axis([21.3,21.65,70.44,70.6])
+timestamp_text = text(21.65,70.49,'','FontSize',14,'HorizontalAlignment', 'right')
+
+
+axis([21.3,21.65,70.48,70.6])
 
 xw = poswh2(:,2);
 yw = poswh2(:,1);
 
 F(length(xw)) = struct('cdata',[],'colormap',[]);
 
+v = VideoWriter("test_small.avi");
+open(v)
 for k = 1:length(xw)
     addpoints(h,xw(k),yw(k));
     addpoints(h2,fb_lon2(k,7),fb_lat2(k,7));
     addpoints(h3,fb_lon2(k,19),fb_lat2(k,19));
     
-    % plot boats the whales don't visit
+    % plot vessels the whales don't visit
     addpoints(h4,fb_lon2(k,6),fb_lat2(k,6))
     addpoints(h5,fb_lon2(k,10),fb_lat2(k,10))
     addpoints(h6,fb_lon2(k,13),fb_lat2(k,13))
@@ -79,11 +84,14 @@ for k = 1:length(xw)
     addpoints(h9,fb_lon2(k,20),fb_lat2(k,20))
     addpoints(h10,fb_lon2(k,26),fb_lat2(k,26))
     addpoints(h11,fb_lon2(k,29),fb_lat2(k,29))
+    timestamp_text.String = char(twh2(k));
+    
     drawnow limitrate
-    F(k) = getframe(gcf);
+    frame = getframe(gcf);
+    writeVideo(v,frame);
 end
-fig = figure;
-movie(fig,F,1,50)
+close(v)
+
 
 
 %get file start times
@@ -95,6 +103,9 @@ names = DEPLOY.FN
 
 ctab = cell2table([ctab names'])
 writetable(ctab, 'out/ctab.csv')
+
+
+% convert a cue time to a location in the audio
 
 
 % closing speed vs over-ground speed
