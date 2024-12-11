@@ -5,12 +5,12 @@
 #housekeeping ---- 
 library(momentuHMM)
 library(dplyr)
-ups_dir = "D:\\Raw\\3S4\\Pseuedotracks\\"
-res = 1.5
+ups_dir = ".\\0_data\\Pseuedotracks\\"
+out_dir = ".\\2_pipeline\\HMMs\\"
+ress = c(1.5, 3, 5) # minutes 
+deploys = c("oo23_292b_pt", "oo23_295a_pt", "oo23_295b_pt", "oo23_295b_pt", "oo23_299a_pt","oo23_299b_pt", "oo23_301a_pt", "oo23_302a_pt")
 
-# load a track 
-deploys = c("oo23_292b_pt", "oo23_295a_pt", "oo23_295b_pt", "oo23_299a_pt","oo23_299b_pt", "oo23_302a_pt")
-
+for(res in ress){
 
 # look at gps coverage
 i = 1
@@ -32,7 +32,7 @@ for(deploy in deploys){
 
 
 x = prepData(data = mas_posds, type = "LL", coordNames = c("V2", "V1"))
-pdf(paste("2state_",res,"min_explor.pdf", sep = ""))
+pdf(paste(out_dir,"2state_",res,"min_explor.pdf", sep = ""))
 plot(x, ask = FALSE)
 dev.off()
 # starting values 
@@ -44,11 +44,11 @@ fit = fitHMM(data = x, nbStates = 2, dist = list(step = "gamma", angle = "vm"),
              Par0 = list(step = stepPar0, angle = anglePar0),
              estAngleMean = list(angle=FALSE))
 states = viterbi(fit)
-pdf(paste("2state_",res,"min.pdf", sep = ""))
+pdf(paste(out_dir,"2state_",res,"min.pdf", sep = ""))
 plot(fit, ask = FALSE)
 dev.off()
 
 x$state = states
 
-write.csv(x, file = paste("HMM_2state_",res,"min.csv", sep = ""))
-
+write.csv(x, file = paste(out_dir,"HMM_2state_",res,"min.csv", sep = ""))
+}

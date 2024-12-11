@@ -4,8 +4,8 @@ dis_thresh = 30 %km
 t_thresh = 30 %sec
 df = 30
 sog_thresh = 30
-wtrack_dir = "D:\Raw\3S4\Pseuedotracks"
-btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
+wtrack_dir = "D:\Analysis\3S4\0_data\Pseuedotracks"
+btrack_dir = "D:\Analysis\3S4\0_data\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
 fs_dif = 10
 ptracks = {'oo23_292b_pt','oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt','oo23_301a_pt','oo23_302a_pt'}
 diagn = false;
@@ -83,8 +83,8 @@ for k = 1:length(ptracks)
     temp.fb_lat = fb_lat;
 
     wtrack = temp
-    save(fullfile("outputs/",append(trackn,"_dsfb.mat")),'wtrack')
-    save(fullfile("outputs/",append(trackn,"_relAIS.mat")),'rel')
+    save(fullfile("D:\Analysis\3S4\2_pipeline\",append(trackn,"_dsfb.mat")),'wtrack')
+    save(fullfile("D:\Analysis\3S4\2_pipeline\",append(trackn,"_relAIS.mat")),'rel')
     if diagn
         saveas(gcf, [string(trackn)], 'fig')
         saveas(gcf, [string(trackn)], 'png')

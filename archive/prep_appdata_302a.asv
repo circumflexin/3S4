@@ -17,10 +17,14 @@ fb_lon = wtrack.fb_lon(1:nx:end,:);
 headcor = rad2deg(headcor);
 pos_gps = wtrack.pos_gps;
 
+%dsfb(dsfb<100) = 20
+
 % get period of interest
 plot(twh,dsfb(:,:)/1000);
-set(gca,'YLim',[0,22],'YTick',[0.25 0.5 1 2 5 10 20],...
+set(gca,'YLim',[0,22],'YTick',[0.1, 0.25 0.5 1 2 5 10 20],...
             'YScale','log','YDir','reverse')
+
+
 ax = gca;
 win = ginput(2);
 start = num2ruler(win(1,1),ax.XAxis);
@@ -34,20 +38,39 @@ fb_lon2 = fb_lon(bool,:);
 fb_lat2 = fb_lat(bool,:);
 
 
+% get period of interest
+plot(dsfb2(:,:)/1000,twh2);
+set(gca,'XLim',[0,22],'XTick',[0.1, 0.25 0.5 1 2 5 10 20],...
+            'XScale','log','XDir','reverse','YDir','reverse')
+%ax=xticklabels;
+%xticklabels(flip(ax))
+
+
 
 mds = min(dsfb2);
 find(min(mds,[],1) < 2000)
 [val,ind] = mink(mds,2);
 
+
 plot(twh2,dsfb2(:,ind))
+
+plot(dsfb2(:,ind)/1000,twh2);
+set(gca,'XLim',[0,5],'XTick',[0.01,0.1, 0.25 0.5 1 2 5 10 20],...
+            'XScale','log','XDir','reverse','YDir','reverse')
+mycolors = [1 0 0; 0 0 1];
+ax = gca; 
+ax.ColorOrder = mycolors;
+
 rel2 = rel(ind)
 
 
-% perform animation with presets
-%figure('units','pixels','position',[0 0 1440 1080])
-h = animatedline('MaximumNumPoints',100,Color="black", LineWidth = 2);
-h2 = animatedline('MaximumNumPoints',100,Color="red");
-h3 = animatedline('MaximumNumPoints',100, Color="blue");
+%%  perform animation with presets
+close all
+
+figure('units','pixels','position',[0 0 1440 1080])
+h = animatedline('MaximumNumPoints',100,Color="black", LineWidth = 2); 
+h2 = animatedline('MaximumNumPoints',100,Color="red"); % HARGUN
+h3 = animatedline('MaximumNumPoints',100, Color="blue"); % LEINEBJOERN
 
 h4 = animatedline('MaximumNumPoints',100, Color="#d3d3d3");
 h5 = animatedline('MaximumNumPoints',100,Color="#d3d3d3");
@@ -68,7 +91,7 @@ yw = poswh2(:,1);
 
 F(length(xw)) = struct('cdata',[],'colormap',[]);
 
-v = VideoWriter("test_small.avi");
+v = VideoWriter("test_small.avi", 'MPEG-4');
 open(v)
 for k = 1:length(xw)
     addpoints(h,xw(k),yw(k));
@@ -86,12 +109,12 @@ for k = 1:length(xw)
     addpoints(h11,fb_lon2(k,29),fb_lat2(k,29))
     timestamp_text.String = char(twh2(k));
     
-    drawnow limitrate
+    drawnow %limitrate
     frame = getframe(gcf);
     writeVideo(v,frame);
 end
 close(v)
-
+%% 
 
 
 %get file start times
@@ -105,9 +128,22 @@ ctab = cell2table([ctab names'])
 writetable(ctab, 'out/ctab.csv')
 
 
-% convert a cue time to a location in the audio
+[file, time] = get_wavtime(fin, ctab)
+
+
+
+%turning point
+cue = datetime("30-Oct-2023 02:28:08")
+[file, time] = get_wavtime(cue, ctab)
+
+%CPA
+cue = datetime("30-Oct-2023 02:56:51")
+[file, time] = get_wavtime(cue, ctab)
+
 
 
 % closing speed vs over-ground speed
 clospeed = diff(dsfb2);
-plot(clospeed(:,19))
+plot(twh2(2:end), clospeed(:,19))
+
+

@@ -9,7 +9,7 @@ ups_dir = "D:\\Raw\\3S4\\Pseuedotracks\\"
 res = 1.5
 
 # load a track 
-deploys = c("oo23_292b_pt", "oo23_295a_pt", "oo23_295b_pt", "oo23_299a_pt","oo23_299b_pt", "oo23_302a_pt")
+deploys = c("oo23_292b_pt", "oo23_295a_pt", "oo23_295b_pt", "oo23_295b_pt", "oo23_299a_pt","oo23_299b_pt", "oo23_301a_pt", "oo23_302a_pt")
 
 
 # look at gps coverage
