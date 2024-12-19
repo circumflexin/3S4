@@ -4,13 +4,11 @@ dis_thresh = 30 %km
 t_thresh = 30 %sec
 df = 30
 sog_thresh = 30
-wtrack_dir = "D:\Raw\3S4\Pseuedotracks"
-btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
+wtrack_dir = "D:\Analysis\3S4\0_data\Pseuedotracks"
+btrack_dir = "D:\Analysis\3S4\0_data\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
 fs_dif = 10
 ptracks = {'oo23_302a_pt'}
 diagn = true;
-
-
 
 AISfiles = dir(fullfile(btrack_dir,'*.csv'))
 

@@ -83,8 +83,9 @@ for k = 1:length(ptracks)
     temp.fb_lat = fb_lat;
 
     wtrack = temp
-    save(fullfile("D:\Analysis\3S4\2_pipeline\",append(trackn,"_dsfb.mat")),'wtrack')
-    save(fullfile("D:\Analysis\3S4\2_pipeline\",append(trackn,"_relAIS.mat")),'rel')
+    save(fullfile("D:\Analysis\3S4\2_pipeline\make_dsfb\",append(trackn,"_dsfb.mat")),'wtrack')
+    save(fullfile("D:\Analysis\3S4\2_pipeline\make_dsfb\",append(trackn,"_relAIS.mat")),'rel')
+    writematrix(rel, fullfile("D:\Analysis\3S4\2_pipeline\make_dsfb\",append(trackn,"_relAIS.csv")))
     if diagn
         saveas(gcf, [string(trackn)], 'fig')
         saveas(gcf, [string(trackn)], 'png')

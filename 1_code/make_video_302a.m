@@ -1,9 +1,12 @@
 
 tag = 'oo23_302a';
-ptrackfolder = 'D:\Analysis\3S4\AIS_processing\outputs\';
-btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO";
+ptrackfolder = 'D:\Analysis\3S4\2_pipeline\make_dsfb\';
+btrack_dir = "D:\Raw\3S4\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO\";
+out_dir = "D:\Analysis\3S4\3_out\Fishing_animations";
 load([ptrackfolder,tag,'_pt_dsfb.mat']) % this includes time vectors twh and tgps
 load([ptrackfolder,tag,'_pt_relAIS.mat'])
+trim = false;
+
 
 nx = 20; % 1 Hz data thinned
 twh = datetime(wtrack.twh(1:nx:end), "ConvertFrom", 'datenum');
@@ -19,40 +22,42 @@ pos_gps = wtrack.pos_gps;
 
 %dsfb(dsfb<100) = 20
 
-% get period of interest
-plot(twh,dsfb(:,:)/1000);
-set(gca,'YLim',[0,22],'YTick',[0.1, 0.25 0.5 1 2 5 10 20],...
-            'YScale','log','YDir','reverse')
+
+if(trim)
+    % get period of interest
+    plot(twh,dsfb(:,:)/1000);
+    set(gca,'YLim',[0,22],'YTick',[0.1, 0.25 0.5 1 2 5 10 20],...
+        'YScale','log','YDir','reverse')
+    ax = gca;
+    win = ginput(2);
+    start = num2ruler(win(1,1),ax.XAxis);
+    fin = num2ruler(win(2,1),ax.XAxis);
+    bool = twh > start & twh < fin;
+    twh2 = twh(bool);
+    poswh2 = poswh(bool,:);
+    dsfb2 = dsfb(bool,:);
+    fb_lon2 = fb_lon(bool,:);
+    fb_lat2 = fb_lat(bool,:);
+else
+    twh2 = twh;
+    poswh2 = poswh;
+    dsfb2 = dsfb;
+    fb_lon2 = fb_lon;
+    fb_lat2 = fb_lat;
+end
 
 
-ax = gca;
-win = ginput(2);
-start = num2ruler(win(1,1),ax.XAxis);
-fin = num2ruler(win(2,1),ax.XAxis);
 
-bool = twh > start & twh < fin;
-twh2 = twh(bool);
-poswh2 = poswh(bool,:);
-dsfb2 = dsfb(bool,:);
-fb_lon2 = fb_lon(bool,:);
-fb_lat2 = fb_lat(bool,:);
-
-
-% get period of interest
-plot(dsfb2(:,:)/1000,twh2);
-set(gca,'XLim',[0,22],'XTick',[0.1, 0.25 0.5 1 2 5 10 20],...
-            'XScale','log','XDir','reverse','YDir','reverse')
-%ax=xticklabels;
-%xticklabels(flip(ax))
-
-
+% % get period of interest
+% plot(dsfb2(:,:)/1000,twh2);
+% set(gca,'XLim',[0,22],'XTick',[0.1, 0.25 0.5 1 2 5 10 20],...
+%             'XScale','log','XDir','reverse','YDir','reverse')
+% %ax=xticklabels;
+% %xticklabels(flip(ax))
 
 mds = min(dsfb2);
 find(min(mds,[],1) < 2000)
 [val,ind] = mink(mds,2);
-
-
-plot(twh2,dsfb2(:,ind))
 
 plot(dsfb2(:,ind)/1000,twh2);
 set(gca,'XLim',[0,5],'XTick',[0.01,0.1, 0.25 0.5 1 2 5 10 20],...
@@ -61,7 +66,7 @@ mycolors = [1 0 0; 0 0 1];
 ax = gca; 
 ax.ColorOrder = mycolors;
 
-rel2 = rel(ind)
+rel2 = rel(ind);
 
 
 %%  perform animation with presets
@@ -90,8 +95,8 @@ xw = poswh2(:,2);
 yw = poswh2(:,1);
 
 F(length(xw)) = struct('cdata',[],'colormap',[]);
-
-v = VideoWriter("test_small.avi", 'MPEG-4');
+vfile = fullfile(out_dir,[tag,'.avi'])
+v = VideoWriter(vfile, 'MPEG-4');
 open(v)
 for k = 1:length(xw)
     addpoints(h,xw(k),yw(k));
@@ -114,11 +119,9 @@ for k = 1:length(xw)
     writeVideo(v,frame);
 end
 close(v)
-%% 
-
-
 %get file start times
-settagpath('cal','D:\Raw\3S4\D3\cal')
+
+settagpath('cal','D:\Analysis\3S4\0_data\cal')
 [CAL,DEPLOY,ufname] = d3loadcal(tag)
 
 ctab = num2cell(DEPLOY.SCUES.TIME);
