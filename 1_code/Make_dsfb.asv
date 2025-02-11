@@ -7,7 +7,7 @@ sog_thresh = 30
 wtrack_dir = "D:\Analysis\3S4\0_data\Pseuedotracks"
 btrack_dir = "D:\Analysis\3S4\0_data\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
 fs_dif = 10
-ptracks = {'oo23_292b_pt'}%,'oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt','oo23_301a_pt','oo23_302a_pt'}
+ptracks = {'oo23_292b_pt','oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt','oo23_301a_pt','oo23_302a_pt'}
 diagn = false;
 
 AISfiles = dir(fullfile(btrack_dir,'*.csv'))
@@ -16,6 +16,7 @@ for k = 1:length(ptracks)
     trackn = ptracks(k)
     temp = open(fullfile(wtrack_dir,append(trackn,".mat")))
     poswh = temp.poswh;
+    twh = temp.twh;
     twh = temp.twh(1:fs_dif:end);
     %datestr(twh(1:4))
     twht = datetime(twh,'ConvertFrom','datenum');
@@ -56,7 +57,7 @@ for k = 1:length(ptracks)
         j
         boat = readtable(fullfile(btrack_dir,rel(j)));
         boat = boat(boat.sog<sog_thresh,:);
-        bool = boat.date_time_utc >= twht(1) & boat.date_time_utc < twht(length(twht));
+        bool = boat.date_time_utc > twht(1) & boat.date_time_utc < twht(length(twht));
         btrack2 = boat(bool,:);
         bt = btrack2.date_time_utc;
         o1 =  twht>min(btrack2.date_time_utc);
@@ -66,7 +67,7 @@ for k = 1:length(ptracks)
         ends = find(o3 ==2, 1, 'last');
         for i = starts:ends
             twi = twht(i);
-            pwi = poswh(ceil(i),:);
+            pwi = poswh(ceil(i/fs_dif),:);
             [val,ind] = min(abs(twht(i)-bt));
             if val < seconds(t_thresh)
                 pfb = [btrack2.lat(ind),btrack2.lon(ind)];
