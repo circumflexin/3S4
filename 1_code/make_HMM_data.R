@@ -2,6 +2,7 @@ library(dplyr)
 library(momentuHMM)
 
 dsfb_dir = ".\\2_pipeline\\make_dsfb\\"
+out_dir = ".\\2_pipeline\\HMMs\\"
 deploys = c("oo23_292b", "oo23_295a", "oo23_295b", "oo23_299a","oo23_299b", "oo23_301a", "oo23_302a")
 res = 1.5
 
@@ -81,7 +82,7 @@ fit0 = fitHMM(data = fit_data, nbStates = 2,
              Par0 = list(step = stepPar0, angle = anglePar0),
              estAngleMean = list(angle=FALSE))
 fit0
-plot(fit0)
+#plot(fit0)
 
 
 # 4 states no covariates
@@ -90,7 +91,9 @@ n_states = 4
 stepPar0 <- c(100,190,70,40, 20,40,20,30) # (mu_1,mu_2,sd_1,sd_2...)
 anglePar0 <- c(10,50,3,1) #
 
-fixbeta <- matrix(c(NA,NA,-100,NA,-100,NA,NA,NA,NA,NA,NA,NA),nrow=1,byrow=TRUE)
+nbStates = 4
+
+fixbeta <- matrix(c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),nrow=1,byrow=TRUE)
 
 fit1 = fitHMM(data = fit_data, nbStates = n_states,
              stateNames = statenames,
@@ -99,38 +102,87 @@ fit1 = fitHMM(data = fit_data, nbStates = n_states,
              fixPar=list(beta=fixbeta),
              estAngleMean = list(angle=FALSE))
 fit1
-plot(fit1)
+#plot(fit1)
 
 
 
 # 4 states with fishing vessel attraction & transition 
 n_states = 4
-angle_formula = ~ + state4(boat.angle)
-formula = ~ betaCol6(boat_dist) # change to "tostate" formulation like in the fulmars example?
-
+angle_formula = ~ state2(boat.angle) + state4(boat.angle)
+formula = ~1 # toState4(boat_dist) 
 
 Par0 <- getPar0(model=fit1, nbStates=4,
                 DM=list(angle=list(mean=angle_formula, concentration=~1)),
                 estAngleMean=list(angle=TRUE),
                 circularAngleMean=list(angle=0),formula = formula)
 
+#betacons = matrix()
 
-fixbeta <- matrix(c(NA,NA,-100,NA,-100,NA,NA,NA,NA,NA,NA,NA,
-                    rep(NA,12)),nrow=2,byrow=TRUE)
-fixPar <- list(angle=c(1,NA,NA,NA,NA), beta = fixbeta)
+betaCons = matrix(c(1,2,2,1,2,2,3,3,4,3,3,4), nrow = 1)
 
-
+fixPar <- list(angle=c(1,1,NA,NA,NA,NA), beta = fixbeta)
 fit2 = fitHMM(data = fit_data, nbStates = n_states,
              dist = list(step = "gamma", angle = "vm"),
              Par0 = list(step=Par0$Par$step, angle=Par0$Par$angle),
-             beta0=Par0$beta,
              fixPar=fixPar,
              formula=formula,
              DM=list(angle=list(mean=angle_formula, concentration=~1)),
-             estAngleMean=list(angle=TRUE), circularAngleMean=list(angle=0),
+             betaCons = betaCons,
+             estAngleMean=list(angle=TRUE), circularAngleMean=list(angle=TRUE),
              stateNames = statenames)
+
 fit2
-plot(fit2)
+pdf(paste(out_dir,"FB_attract",res,"min.pdf", sep = ""))
+plot(fit2, ask = FALSE)
+dev.off()
 
 
+# 3 states, no attraction
+nbStates = 3
+statenames = c("ARS", "attraction", "travel")
+stepPar0 <- c(60,80,180, 30,20,40) # (mu_1,mu_2,sd_1,sd_2...)
+anglePar0 <- c(3,10,50) #
+
+#relational constraints
+angleDM<-matrix(c(1,1,0,
+                  0,0,1,
+                  1,0,0),nbStates,3,byrow=TRUE,
+                dimnames=list(paste0("concentration_",1:nbStates),
+                              c("concentration_13:(Intercept)","concentration_1","concentration_2:(Intercept)")))
+angleworkBounds <- matrix(c(-Inf,-Inf,-Inf,Inf,0,Inf),3,2,dimnames=list(colnames(angleDM),c("lower","upper")))
+
+stepDM<-matrix(c(1,1,0,0,0,0,
+                 0,0,1,0,0,0,
+                 1,0,0,0,0,0,
+                 0,0,0,1,0,0,
+                 0,0,0,0,1,0,
+                 0,0,0,0,0,1),2*nbStates,6,byrow=TRUE,
+               dimnames=list(c(paste0("mean_",1:nbStates),paste0("sd_",1:nbStates)),
+                             c("mean_13:(Intercept)","mean_1","mean_2:(Intercept)",
+                               paste0("sd_",1:nbStates,":(Intercept)"))))
+stepworkBounds <- matrix(c(-Inf,-Inf,-Inf,-Inf,-Inf,-Inf,Inf,0,rep(Inf,4)),6,2,
+                         dimnames=list(colnames(stepDM),c("lower","upper")))
+
+DM<-list(step=stepDM,angle=angleDM)
+workBounds<-list(step=stepworkBounds,angle=angleworkBounds)
+
+dist = list(step = "gamma", angle = "vm")
+
+Par = list(step = stepPar0, angle = anglePar0)
+Par0 <- getParDM(nbStates = nbStates, dist = dist,
+                 Par = Par, DM = DM, workBounds = workBounds,
+                 estAngleMean = list(angle = FALSE))
+
+
+fit3 = fitHMM(data = fit_data, nbStates = n_states,
+              stateNames = statenames,
+              dist = list(step = "gamma", angle = "vm"),
+              Par0 = Par0,
+              DM = DM, workBounds = workBounds,
+              estAngleMean = list(angle=FALSE),
+              retryFits = 30)
+fit3
+plot(fit3)
+
+# 3 states with attraction
 
