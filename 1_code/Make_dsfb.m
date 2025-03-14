@@ -7,7 +7,7 @@ sog_thresh = 30
 wtrack_dir = "D:\Analysis\3S4\0_data\Pseuedotracks"
 btrack_dir = "D:\Analysis\3S4\0_data\AIS data\Individual vessel AIS tracks_Oct9 - Nov30 vessels with IMO"
 fs_dif = 10
-ptracks = {'oo23_292b_pt'}%,'oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt','oo23_301a_pt','oo23_302a_pt'}
+ptracks = {'oo23_292b_pt','oo23_295a_pt','oo23_295b_pt','oo23_297b_pt','oo23_299a_pt','oo23_299b_pt','oo23_301a_pt','oo23_302a_pt'}
 diagn = false;
 
 AISfiles = dir(fullfile(btrack_dir,'*.csv'))
@@ -21,6 +21,7 @@ for k = 1:length(ptracks)
     twht = datetime(twh,'ConvertFrom','datenum');
 
     rel = strings()
+    relname = strings()
     ellipsoid = almanac('earth','wgs84','meters');
     n = 1;
     % get rid of files which have no overlap or are never closer than the
@@ -29,6 +30,7 @@ for k = 1:length(ptracks)
         ais_file=AISfiles(f).name
         boat = readtable(fullfile(btrack_dir,ais_file));
         x1 = string(boat.validated_shiptype{1}) ~= "Fishing Vessel"; %
+        AIS_name = string(boat.name_ais(1));
         x2 = (twht(1) > boat.date_time_utc(length(boat.date_time_utc)) |  twht(length(twht)) <boat.date_time_utc(1)); %tag starts after ais ends or ends before it starts
         if ~any([x1, x2])
             boat2 = boat(1:df:end,:); %downsample for performance
@@ -39,6 +41,7 @@ for k = 1:length(ptracks)
                     mind = min(distance(poswh(i,:), posf, ellipsoid));
                     if mind < dis_thresh*1000
                         rel(n,1) = string(ais_file)
+                        rel(n,2) = AIS_name
                         n = n +1;
                         break
                     end
@@ -59,8 +62,8 @@ for k = 1:length(ptracks)
         bool = boat.date_time_utc >= twht(1) & boat.date_time_utc < twht(length(twht));
         btrack2 = boat(bool,:);
         bt = btrack2.date_time_utc;
-        o1 =  twht>min(btrack2.date_time_utc);
-        o2 = twht<max(btrack2.date_time_utc);
+        o1 =  twht>=min(btrack2.date_time_utc);
+        o2 = twht<=max(btrack2.date_time_utc);
         o3 = o1+o2;
         starts = find(o3 ==2,1, 'first');
         ends = find(o3 ==2, 1, 'last');
