@@ -7,7 +7,8 @@ clear all; close all
 save_plots = false; % save plots yes/no?
 
 % tags = {'oo23_292b','oo23_295a'}; % all tags with complete audits
-tags = {'oo23_302a'}; % all priority tags (focal, nonfocal and one baseline (oo23_302a))
+tags = {'oo23_292b','mn23_293a','oo23_295b','oo23_295a','oo23_297b',...
+    'oo23_299a','oo23_299b','oo23_302a'}; % all priority tags (focal, nonfocal and one baseline (oo23_302a))
 
 % Data folders (relative or absolute paths)
 prhfolder = 'prh\';
@@ -20,7 +21,7 @@ husgpsfolder = 'GPS_AIS\';
 
 %% Start code
 % Loop over tags
-for j=1%:length(tags)
+for j=3%:length(tags)
 
 
 % Load user defined

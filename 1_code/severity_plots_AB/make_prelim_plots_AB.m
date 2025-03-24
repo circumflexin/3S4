@@ -4,22 +4,21 @@
 clear all; close all
 
 %% User defined
-save_plots = false; % save plots yes/no?
-trunc_dist = 20; % cut off vessel distance at the noise floor 
+save_plots = true; % save plots yes/no?
+trunc_dist = 50; % cut off vessel distance at the noise floor 
 % to prevent large spurious spikes in the plot
 
-tags = {'oo23_292b','oo23_295a'}; % all tags with complete audits
+tags = {'oo23_292b','oo23_295a','oo23_295b','oo23_297b'}; % all tags with complete audits
 %tags = {'oo23_292b','oo23_295a','oo23_295b','oo23_297b','oo23_299a','oo23_299b'}; % all priority tags (focal, nonfocal and one baseline (oo23_302a))
 
 % Data folders (relative or absolute paths)
-prhfolder = 'prh\';
-calfolder = 'cal\';
-speedfolder = 'speed from jiggle\';
-auditfolder = 'prelim audits\';
-noiseauditfolder = 'Noise audit data\';
+prhfolder = 'D:\Analysis\3S4\0_data\prh\';
+calfolder = 'D:\Analysis\3S4\0_data\cal\';
+speedfolder = 'D:\Analysis\3S4\0_data\speed from jiggle\';
+auditfolder = 'D:\Analysis\3S4\0_data\Audits\';
+noiseauditfolder = 'D:\Analysis\3S4\0_data\Noise audit data\';
 ptrackfolder = 'D:\Analysis\3S4\2_pipeline\make_dsfb\';
 husgpsfolder = 'D:\Analysis\3S4\0_data\AIS data\';
-
 HMM_folder = 'D:\Analysis\3S4\2_pipeline\HMMs';
 
 %% Start code
@@ -136,10 +135,11 @@ for i=1:length(ts)
 end
 
 %load HMM
-HMM = readtable(fullfile(HMM_folder,"HMM_2state_3min.csv"));
+HMM = readtable(fullfile(HMM_folder,"HMM_2state_1.5min.csv"));
 HMM = HMM(strcmp(HMM.deploy, append(tag,'_pt')),:);
 
 dsfb = wtrack.dsfb;
+dsfb(dsfb<trunc_dist) = trunc_dist;
 
 %% Map
 sdf = df/(1/fs); % resolution difference HUS and whale track
@@ -334,7 +334,7 @@ for i=1:length(h)
         set(gca,'YLim',[0.5,5.5],'YTick',1:5,'YTickLabel',noise_labels,...
             'XTickLabel','','OuterPosition',[0,0.875,1,0.11])
     elseif i==2
-        set(gca,'YLim',[0.2,22],'YTick',[0.5 1 2 5 10 20],'XTickLabel','',...
+        set(gca,'YLim',[0.04,22],'YTick',[0.1, 0.5 1 2 5 10 20],'XTickLabel','',...
             'YScale','log','YDir','reverse',...
             'OuterPosition',[0,0.75,1,0.12])
     elseif i==3

@@ -6,7 +6,7 @@ clear all;
 tag = 'oo23_302a';
 
 % Load the cal file (NOTE: cal file for oo23_292b is preliminary!)
-settagpath('cal','D:\Analysis\3S4\severity_plots_AB\cal')
+settagpath('cal','D:\Analysis\3S4\0_data\cal')
 [CAL,D] = d3loadcal(tag);
 
 % Loop over each annotation file to extract data

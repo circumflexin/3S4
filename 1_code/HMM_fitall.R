@@ -5,10 +5,10 @@
 #housekeeping ---- 
 library(momentuHMM)
 library(dplyr)
-ups_dir = ".\\0_data\\Pseuedotracks\\"
+ups_dir = ".\\0_data\\Pseuedotracks\\" #1hz
 out_dir = ".\\2_pipeline\\HMMs\\"
-ress = c(1.5, 3, 5) # minutes 
-deploys = c("oo23_292b_pt", "oo23_295a_pt", "oo23_295b_pt", "oo23_295b_pt", "oo23_299a_pt","oo23_299b_pt", "oo23_301a_pt", "oo23_302a_pt")
+ress = c(1.5,3,5) # minutes 
+deploys = c("oo23_292b_pt", "oo23_295a_pt", "oo23_295b_pt", "oo23_295b_pt","oo23_297b_pt", "oo23_299a_pt","oo23_299b_pt", "oo23_301a_pt", "oo23_302a_pt")
 
 for(res in ress){
 
@@ -23,12 +23,13 @@ for(deploy in deploys){
   pos_ds = pos[(pos$index-1)%%(res*6)==0,]
   pos_ds$ID = i
   pos_ds$deploy = deploy
-  pos_ds$twh = track$twh[pos_ds$index]
-  if(i == 1){mas_posds = pos_ds}
-  else{mas_posds = rbind(mas_posds,pos_ds)}
+  pos_ds$twh = track$twh[pos_ds$index*10]
+  if(i == 1){mas_posds = pos_ds}else{mas_posds = rbind(mas_posds,pos_ds)}
   i = i+1
   #scan()
 }
+
+mas_posds$twh2 = as.POSIXct((mas_posds$twh-719529)*86400, origin = "1970-01-01", tz = "UTC")
 
 
 x = prepData(data = mas_posds, type = "LL", coordNames = c("V2", "V1"))
