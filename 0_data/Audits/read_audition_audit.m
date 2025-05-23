@@ -3,7 +3,7 @@
 % Uses a DTAG cal file to extract WAV file durations.
 clear all;
 
-tag = 'oo23_299a';
+tag = 'oo23_299b';
 
 % Load the cal file (NOTE: cal file for oo23_292b is preliminary!)
 settagpath('cal','D:\Analysis\3S4\0_data\cal')
@@ -13,9 +13,9 @@ settagpath('cal','D:\Analysis\3S4\0_data\cal')
 taudit=[];
 duraudit=[];
 code=cell(0);
-d = dir('D:\Analysis\3S4\0_data\Audits\draft_audits\oo23_299a\*.txt');
+d = dir('D:\Analysis\3S4\0_data\Audits\draft_audits\oo23_299b\*.txt');
 for i=1:length(d)
-    tstart = datenum(D.SCUES.TIME(strcmp(D.FN, d(i).name(1:(end-15))),:)); % UTC start time of annotated WAV file 
+    tstart = datenum(D.SCUES.TIME(strcmp(D.FN, d(i).name(1:(end-4))),:)); % UTC start time of annotated WAV file 
     data = readtable([d(i).folder,'\',d(i).name]);  % read data
     taudit = [taudit; tstart + (data{:,1})/86400];  % annotation start time
     duraudit = [duraudit; data{:,2} - data{:,1}];   % annotation duration in seconds 
